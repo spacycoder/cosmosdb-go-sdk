@@ -1,6 +1,6 @@
 package qbuilder
 
-import "github.com/spacycoder/test/cosmos"
+import "github.com/spacycoder/cosmodb-go-sdk/cosmos"
 
 type Condition struct {
 	ConditionType string
