@@ -1,13 +1,14 @@
-# CosmosDB GO sdk 
+# CosmosDB GO sdk
 
 - [Installation](#installation)
 - [Usage](#usage)
-    - [Documents](#Documents)
-    - [Collections](#Collection)
-    - [Databases](#Databases)
-    - [StoredProcedures](#StoredProcedures)
-    - [UDFs](#UDFs)
-    - [Triggers](#Triggers)
+  - [Documents](#Documents)
+  - [Collections](#Collection)
+  - [Databases](#Databases)
+  - [StoredProcedures](#StoredProcedures)
+  - [UDFs](#UDFs)
+  - [Triggers](#Triggers)
+  - [Query Builder](#QueryBuilder)
 
 ## Installation
 
@@ -16,21 +17,23 @@
 ## Usage
 
 To get started import the `cosmos` package and create a client.
+
 ```go
 import github.com/SpacyCoder/cosmosdb-go-sdk/cosmos
 
 client, err := cosmos.New("YOUR_CONNECTION_STRING")
 ```
 
-
-
 ### Documents
+
 #### Create Document
-note: If your don't supply an `id` for the document it will be automatically created for you 
+
+note: If your don't supply an `id` for the document it will be automatically created for you
+
 ```GO
 type Person struct {
     cosmos.DocumentDefinition
-    Name string `json:"name"` 
+    Name string `json:"name"`
     Age string `json:"age"`
 }
 
@@ -44,11 +47,13 @@ func main() {
 }
 
 ```
+
 #### Read Document
+
 ```GO
 type Person struct {
     cosmos.DocumentDefinition
-    Name string `json:"name"` 
+    Name string `json:"name"`
     Age string `json:"age"`
 }
 
@@ -60,10 +65,11 @@ func main() {
 ```
 
 #### List Documents
+
 ```GO
 type Person struct {
     cosmos.DocumentDefinition
-    Name string `json:"name"` 
+    Name string `json:"name"`
     Age string `json:"age"`
 }
 
@@ -75,10 +81,11 @@ func main() {
 ```
 
 #### Query Documents
+
 ```GO
 type Person struct {
     cosmos.DocumentDefinition
-    Name string `json:"name"` 
+    Name string `json:"name"`
     Age string `json:"age"`
 }
 
@@ -93,6 +100,7 @@ func main() {
     res, err := coll.Documents().Query(query, &people, cosmos.CrossPartition())
 }
 ```
+
 or with query builder
 
 ```GO
@@ -101,7 +109,7 @@ import ("github.com/SpacyCoder/cosmosdb-go-sdk/cosmos"
 
 type Person struct {
     cosmos.DocumentDefinition
-    Name string `json:"name"` 
+    Name string `json:"name"`
     Age string `json:"age"`
 }
 
@@ -117,7 +125,9 @@ func main() {
     res, err := coll.Documents().Query(query, &people, cosmos.CrossPartition())
 }
 ```
+
 #### Delete Document
+
 ```GO
 import "github.com/SpacyCoder/cosmosdb-go-sdk/cosmos"
 
@@ -131,7 +141,9 @@ func main() {
 ```
 
 ### Collection
+
 #### Create collection
+
 ```GO
     import "github.com/SpacyCoder/cosmosdb-go-sdk/cosmos"
 
@@ -147,7 +159,9 @@ func main() {
         _, err := db.Collections().Create(newCollDef)
     }
 ```
+
 #### Read Collection
+
 ```GO
     import "github.com/SpacyCoder/cosmosdb-go-sdk/cosmos"
 
@@ -160,6 +174,7 @@ func main() {
 ```
 
 #### List Collections
+
 ```GO
     import "github.com/SpacyCoder/cosmosdb-go-sdk/cosmos"
 
@@ -172,6 +187,7 @@ func main() {
 ```
 
 #### Delete Collection
+
 ```GO
     import "github.com/SpacyCoder/cosmosdb-go-sdk/cosmos"
 
@@ -184,7 +200,9 @@ func main() {
 ```
 
 ### Databases
+
 #### Create Database
+
 ```GO
     import "github.com/SpacyCoder/cosmosdb-go-sdk/cosmos"
 
@@ -193,7 +211,9 @@ func main() {
         dbDef, err := client.Databases().Create("DATABASE_ID")
     }
 ```
+
 #### Read Database
+
 ```GO
     import "github.com/SpacyCoder/cosmosdb-go-sdk/cosmos"
 
@@ -202,7 +222,9 @@ func main() {
         dbDef, err := client.Database("DATABASE_ID").Read()
     }
 ```
-#### List Databases 
+
+#### List Databases
+
 ```GO
     import "github.com/SpacyCoder/cosmosdb-go-sdk/cosmos"
 
@@ -211,8 +233,9 @@ func main() {
         dbDefs, err = client.Databases().ReadAll()
     }
 ```
-    
-#### Delete Database 
+
+#### Delete Database
+
 ```GO
     import "github.com/SpacyCoder/cosmosdb-go-sdk/cosmos"
 
@@ -223,7 +246,9 @@ func main() {
 ```
 
 ### StoredProcedures
+
 #### Create Stored Procedure
+
 ```GO
     import "github.com/SpacyCoder/cosmosdb-go-sdk/cosmos"
 
@@ -231,14 +256,16 @@ func main() {
         client, err := cosmos.New("YOUR_CONNECTION_STRING")
         coll := client.Database("dbID").Collection("collID")
         spDef := &cosmos.StoredProcedureDefinition{
-            Resource: cosmos.Resource{ID: "mySP"}, 
+            Resource: cosmos.Resource{ID: "mySP"},
             Body: "function () {\r\n var context = getContext();\r\n var response = context.getResponse();\r\n\r\n  response.setBody(\"Hello, World\");\r\n}"
         }
-	    
+
         createdSP, err := coll.StoredProcedures().Create(spDef)
     }
 ```
+
 #### Execute Stored Procedure
+
 ```GO
     import "github.com/SpacyCoder/cosmosdb-go-sdk/cosmos"
 
@@ -249,7 +276,9 @@ func main() {
         _, err = coll.StoredProcedure("mySP").Execute("", &res)
     }
 ```
+
 #### Replace Stored Procedure
+
 ```GO
     import "github.com/SpacyCoder/cosmosdb-go-sdk/cosmos"
 
@@ -257,14 +286,16 @@ func main() {
         client, err := cosmos.New("YOUR_CONNECTION_STRING")
         coll := client.Database("dbID").Collection("collID")
         newSpDef := &cosmos.StoredProcedureDefinition{
-            Resource: cosmos.Resource{ID: "mySP"}, 
+            Resource: cosmos.Resource{ID: "mySP"},
             Body: "function (greet, someone) {\r\n var context = getContext();\r\n var response = context.getResponse();\r\n\r\n response.setBody(greet + \", \"+ someone);\r\n}"
         }
-	    
+
         _, err = coll.StoredProcedure("mySP").Replace(newSpDef)
     }
 ```
-#### List Stored Procedures 
+
+#### List Stored Procedures
+
 ```GO
     import "github.com/SpacyCoder/cosmosdb-go-sdk/cosmos"
 
@@ -274,8 +305,9 @@ func main() {
         sprocs, err := coll.StoredProcedures().ReadAll()
     }
 ```
-    
-#### Delete Stored Procedure 
+
+#### Delete Stored Procedure
+
 ```GO
     import "github.com/SpacyCoder/cosmosdb-go-sdk/cosmos"
 
@@ -286,7 +318,9 @@ func main() {
 ```
 
 ### UDFs
+
 #### Create UDF
+
 ```GO
     import "github.com/SpacyCoder/cosmosdb-go-sdk/cosmos"
 
@@ -300,7 +334,9 @@ func main() {
         createdUDF, err := coll.UDFs().Create(udfDef)
     }
 ```
+
 #### Replace UDF
+
 ```GO
     import "github.com/SpacyCoder/cosmosdb-go-sdk/cosmos"
 
@@ -314,7 +350,9 @@ func main() {
         updatedUDF, err := coll.UDF("myUDF").Replace(newUDF)
     }
 ```
+
 #### List UDFs
+
 ```GO
     import "github.com/SpacyCoder/cosmosdb-go-sdk/cosmos"
 
@@ -324,7 +362,9 @@ func main() {
         udfs, err := coll.UDFs().ReadAll()
     }
 ```
-#### Delete UDF 
+
+#### Delete UDF
+
 ```GO
     import "github.com/SpacyCoder/cosmosdb-go-sdk/cosmos"
 
@@ -333,8 +373,11 @@ func main() {
         _, err = coll.UDF("myUDF").Delete()
     }
 ```
+
 ### Triggers
+
 #### Create Trigger
+
 ```GO
     import "github.com/SpacyCoder/cosmosdb-go-sdk/cosmos"
 
@@ -350,7 +393,9 @@ func main() {
         _, err := coll.Triggers().Create(triggerDef)
     }
 ```
+
 #### Replace Trigger
+
 ```GO
     import "github.com/SpacyCoder/cosmosdb-go-sdk/cosmos"
 
@@ -366,7 +411,9 @@ func main() {
         updatedTriggerDef, err := coll.Trigger("myTrigger").Replace(newTriggerDef)
     }
 ```
+
 #### List Triggers
+
 ```GO
     import "github.com/SpacyCoder/cosmosdb-go-sdk/cosmos"
 
@@ -376,7 +423,9 @@ func main() {
         triggers, err := coll.Triggers().ReadAll()
     }
 ```
-#### Delete Trigger 
+
+#### Delete Trigger
+
 ```GO
     import "github.com/SpacyCoder/cosmosdb-go-sdk/cosmos"
 
@@ -384,4 +433,51 @@ func main() {
         client, err := cosmos.New("YOUR_CONNECTION_STRING")
         _, err = coll.Trigger("myTrigger").Delete()
     }
+```
+
+### Query Builder
+
+CosmosDB sdk for go includes a simple query builder.
+supports:
+* AND
+* OR
+* SELECT
+* FROM
+* ORDER BY
+
+#### Example 1
+```GO
+import (
+    "github.com/SpacyCoder/cosmosdb-go-sdk/qbuilder"
+    "github.com/SpacyCoder/cosmosdb-go-sdk/cosmos"
+)
+
+func main()  {
+    client, err := cosmos.New("YOUR_CONNECTION_STRING")
+
+    qb := qbuilder.New()
+    query := qb.Select("*").From("root").And("root.age > 10").Build()
+
+    var people []People
+    client.Database("mydb").Collection("people").Documents().Query(query, people, Cosmos.CrossPartition())
+}
+```
+
+#### Example 2
+```GO
+import (
+    "github.com/SpacyCoder/cosmosdb-go-sdk/qbuilder"
+    "github.com/SpacyCoder/cosmosdb-go-sdk/cosmos"
+)
+
+func main()  {
+    client, err := cosmos.New("YOUR_CONNECTION_STRING")
+
+    qb := qbuilder.New()
+    q1 := qb.Select("*").From("root").And("root.age > @AGE").And("root.height > @HEIGHT").OrderBy("DESC root.height")
+    query := q1.Params(cosmos.P{Name: "@AGE", Value: 20}, cosmos.P{Name: "@HEIGHT", Value: 180}).Build()
+
+    var people []People
+    client.Database("mydb").Collection("people").Documents().Query(query, people, Cosmos.CrossPartition())
+}
 ```
