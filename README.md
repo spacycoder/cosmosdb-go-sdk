@@ -435,9 +435,10 @@ func main() {
     }
 ```
 
-### Query Builder
+### QueryBuilder
 
 CosmosDB sdk for go includes a simple query builder.
+
 supports:
 * AND
 * OR
@@ -472,7 +473,8 @@ import (
 
 func main()  {
     client, err := cosmos.New("YOUR_CONNECTION_STRING")
-
+import "github.com/SpacyCoder/cosmosdb-go-sdk/qbuilder"
+ "github.com/SpacyCoder/cosmosdb-go-sdk/cosmos"
     qb := qbuilder.New()
     q1 := qb.Select("*").From("root").And("root.age > @AGE").And("root.height > @HEIGHT").OrderBy("DESC root.height")
     query := q1.Params(cosmos.P{Name: "@AGE", Value: 20}, cosmos.P{Name: "@HEIGHT", Value: 180}).Build()
