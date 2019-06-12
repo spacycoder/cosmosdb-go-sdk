@@ -1,5 +1,7 @@
 package cosmos
 
+import "context"
+
 type UDF struct {
 	client Client
 	coll   Collection
@@ -35,9 +37,9 @@ func newUDFs(coll Collection) *UDFs {
 	return udfs
 }
 
-func (u *UDFs) Create(newUDF *UDFDefinition, opts ...CallOption) (*UDFDefinition, error) {
+func (u *UDFs) Create(ctx context.Context, newUDF *UDFDefinition, opts ...CallOption) (*UDFDefinition, error) {
 	createdUDFResp := &UDFDefinition{}
-	_, err := u.client.create(newUDF, &createdUDFResp, opts...)
+	_, err := u.client.create(ctx, newUDF, &createdUDFResp, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -45,9 +47,9 @@ func (u *UDFs) Create(newUDF *UDFDefinition, opts ...CallOption) (*UDFDefinition
 	return createdUDFResp, err
 }
 
-func (u *UDF) Replace(newUDF *UDFDefinition, opts ...CallOption) (*UDFDefinition, error) {
+func (u *UDF) Replace(ctx context.Context, newUDF *UDFDefinition, opts ...CallOption) (*UDFDefinition, error) {
 	updatedUDF := &UDFDefinition{}
-	_, err := u.client.replace(newUDF, &updatedUDF, opts...)
+	_, err := u.client.replace(ctx, newUDF, &updatedUDF, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -55,12 +57,12 @@ func (u *UDF) Replace(newUDF *UDFDefinition, opts ...CallOption) (*UDFDefinition
 	return updatedUDF, err
 }
 
-func (u *UDFs) ReadAll(opts ...CallOption) ([]UDFDefinition, error) {
+func (u *UDFs) ReadAll(ctx context.Context, opts ...CallOption) ([]UDFDefinition, error) {
 	data := struct {
 		Udfs  []UDFDefinition `json:"UserDefinedFunctions,omitempty"`
 		Count int             `json:"_count,omitempty"`
 	}{}
-	_, err := u.client.read(&data, opts...)
+	_, err := u.client.read(ctx, &data, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -68,6 +70,6 @@ func (u *UDFs) ReadAll(opts ...CallOption) ([]UDFDefinition, error) {
 	return data.Udfs, err
 }
 
-func (u *UDF) Delete(opts ...CallOption) (*Response, error) {
-	return u.client.delete(opts...)
+func (u *UDF) Delete(ctx context.Context, opts ...CallOption) (*Response, error) {
+	return u.client.delete(ctx, opts...)
 }

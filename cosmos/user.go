@@ -1,5 +1,7 @@
 package cosmos
 
+import "context"
+
 type User struct {
 	client Client
 	db     Database
@@ -49,9 +51,9 @@ func newUsers(db Database) *Users {
 }
 
 // Create a new user
-func (u *Users) Create(user *UserDefinition, opts ...CallOption) (*UserDefinition, error) {
+func (u *Users) Create(ctx context.Context, user *UserDefinition, opts ...CallOption) (*UserDefinition, error) {
 	createdUser := &UserDefinition{}
-	_, err := u.client.create(user, &createdUser, opts...)
+	_, err := u.client.create(ctx, user, &createdUser, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -60,9 +62,9 @@ func (u *Users) Create(user *UserDefinition, opts ...CallOption) (*UserDefinitio
 }
 
 // Replace an existing user with a new one.
-func (u *User) Replace(user *UserDefinition, opts ...CallOption) (*UserDefinition, error) {
+func (u *User) Replace(ctx context.Context, user *UserDefinition, opts ...CallOption) (*UserDefinition, error) {
 	updatedUser := &UserDefinition{}
-	_, err := u.client.replace(user, &updatedUser, opts...)
+	_, err := u.client.replace(ctx, user, &updatedUser, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -71,13 +73,13 @@ func (u *User) Replace(user *UserDefinition, opts ...CallOption) (*UserDefinitio
 }
 
 // ReadAll users in a collection
-func (u *Users) ReadAll(opts ...CallOption) ([]UserDefinition, error) {
+func (u *Users) ReadAll(ctx context.Context, opts ...CallOption) ([]UserDefinition, error) {
 	data := struct {
 		Users []UserDefinition `json:"users,omitempty"`
 		Count int              `json:"_count,omitempty"`
 	}{}
 
-	_, err := u.client.read(&data, opts...)
+	_, err := u.client.read(ctx, &data, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -85,13 +87,13 @@ func (u *Users) ReadAll(opts ...CallOption) ([]UserDefinition, error) {
 }
 
 // Delete existing user
-func (u *User) Delete(opts ...CallOption) (*Response, error) {
-	return u.client.delete(opts...)
+func (u *User) Delete(ctx context.Context, opts ...CallOption) (*Response, error) {
+	return u.client.delete(ctx, opts...)
 }
 
 // Read a single user from collection
-func (u *User) Read(opts ...CallOption) (*UserDefinition, error) {
+func (u *User) Read(ctx context.Context, opts ...CallOption) (*UserDefinition, error) {
 	user := &UserDefinition{}
-	_, err := u.client.read(user, opts...)
+	_, err := u.client.read(ctx, user, opts...)
 	return user, err
 }

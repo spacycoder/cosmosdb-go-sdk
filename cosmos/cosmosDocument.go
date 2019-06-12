@@ -1,6 +1,7 @@
 package cosmos
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 )
@@ -49,43 +50,43 @@ func newDocuments(coll Collection) *Documents {
 }
 
 // Create new document
-func (d *Documents) Create(doc interface{}, opts ...CallOption) (*Response, error) {
+func (d *Documents) Create(ctx context.Context, doc interface{}, opts ...CallOption) (*Response, error) {
 	d.client.createIDIfNotSet(doc)
-	return d.client.create(doc, &doc, opts...)
+	return d.client.create(ctx, doc, &doc, opts...)
 }
 
 // Read document
-func (d Document) Read(ret interface{}, opts ...CallOption) (*Response, error) {
-	return d.client.read(ret, opts...)
+func (d Document) Read(ctx context.Context, ret interface{}, opts ...CallOption) (*Response, error) {
+	return d.client.read(ctx, ret, opts...)
 }
 
 // Replace existing document
-func (d *Document) Replace(doc interface{}, ret interface{}, opts ...CallOption) (*Response, error) {
+func (d *Document) Replace(ctx context.Context, doc interface{}, ret interface{}, opts ...CallOption) (*Response, error) {
 	d.client.createIDIfNotSet(doc)
-	return d.client.replace(doc, ret, opts...)
+	return d.client.replace(ctx, doc, ret, opts...)
 }
 
 // Delete document
-func (d Document) Delete(opts ...CallOption) (*Response, error) {
-	return d.client.delete(opts...)
+func (d Document) Delete(ctx context.Context, opts ...CallOption) (*Response, error) {
+	return d.client.delete(ctx, opts...)
 }
 
 // ReadAll returns all documents in collection.
-func (d *Documents) ReadAll(docs interface{}, opts ...CallOption) (*Response, error) {
+func (d *Documents) ReadAll(ctx context.Context, docs interface{}, opts ...CallOption) (*Response, error) {
 	data := struct {
 		Documents interface{} `json:"Documents,omitempty"`
 		Count     int         `json:"_count,omitempty"`
 	}{Documents: docs}
-	res, err := d.client.read(&data, opts...)
+	res, err := d.client.read(ctx, &data, opts...)
 	return res, err
 }
 
 // Query documents
-func (d Documents) Query(query *SqlQuerySpec, docs interface{}, opts ...CallOption) (*Response, error) {
+func (d Documents) Query(ctx context.Context, query *SqlQuerySpec, docs interface{}, opts ...CallOption) (*Response, error) {
 	data := struct {
 		Documents interface{} `json:"Documents,omitempty"`
 		Count     int         `json:"_count,omitempty"`
 	}{Documents: docs}
-	res, err := d.client.query(query, &data, opts...)
+	res, err := d.client.query(ctx, query, &data, opts...)
 	return res, err
 }

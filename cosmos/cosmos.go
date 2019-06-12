@@ -2,6 +2,7 @@ package cosmos
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"net/http"
 	"reflect"
@@ -63,7 +64,7 @@ func (c *Client) Databases() *Databases {
 	return newDatabases(c)
 }
 
-func (c *Client) query(query *SqlQuerySpec, body interface{}, opts ...CallOption) (*Response, error) {
+func (c *Client) query(ctx context.Context, query *SqlQuerySpec, body interface{}, opts ...CallOption) (*Response, error) {
 	buf := buffers.Get()
 	defer buffers.Put(buf)
 	if err := Serialization.EncoderFactory(buf).Encode(query); err != nil {
@@ -71,55 +72,57 @@ func (c *Client) query(query *SqlQuerySpec, body interface{}, opts ...CallOption
 	}
 
 	opts = append(opts, queryHeaders(buf.Len()))
-	return c.do(http.MethodPost, expectStatusCode(http.StatusOK), body, buf, opts...)
+	return c.do(ctx, http.MethodPost, expectStatusCode(http.StatusOK), body, buf, opts...)
 }
 
-func (c *Client) read(ret interface{}, opts ...CallOption) (*Response, error) {
+func (c *Client) read(ctx context.Context, ret interface{}, opts ...CallOption) (*Response, error) {
 	buf := buffers.Get()
 	defer buffers.Put(buf)
-	return c.do(http.MethodGet, expectStatusCode(http.StatusOK), ret, buf, opts...)
+	return c.do(ctx, http.MethodGet, expectStatusCode(http.StatusOK), ret, buf, opts...)
 }
 
 // Create resource
-func (c *Client) create(body, ret interface{}, opts ...CallOption) (*Response, error) {
+func (c *Client) create(ctx context.Context, body, ret interface{}, opts ...CallOption) (*Response, error) {
 	data, err := stringify(body)
 	if err != nil {
 		return nil, err
 	}
 	buf := bytes.NewBuffer(data)
-	return c.do(http.MethodPost, expectStatusCodeXX(http.StatusOK), ret, buf, opts...)
+	return c.do(ctx, http.MethodPost, expectStatusCodeXX(http.StatusOK), ret, buf, opts...)
 }
 
 // Replace resource
-func (c *Client) replace(body, ret interface{}, opts ...CallOption) (*Response, error) {
+func (c *Client) replace(ctx context.Context, body, ret interface{}, opts ...CallOption) (*Response, error) {
 	data, err := stringify(body)
 	if err != nil {
 		return nil, err
 	}
 	buf := bytes.NewBuffer(data)
-	return c.do(http.MethodPut, expectStatusCode(http.StatusOK), ret, buf, opts...)
+	return c.do(ctx, http.MethodPut, expectStatusCode(http.StatusOK), ret, buf, opts...)
 }
 
 // Delete resource
-func (c *Client) delete(opts ...CallOption) (*Response, error) {
-	return c.do(http.MethodDelete, expectStatusCode(http.StatusNoContent), nil, &bytes.Buffer{}, opts...)
+func (c *Client) delete(ctx context.Context, opts ...CallOption) (*Response, error) {
+	return c.do(ctx, http.MethodDelete, expectStatusCode(http.StatusNoContent), nil, &bytes.Buffer{}, opts...)
 }
 
-func (c *Client) execute(body, ret interface{}, opts ...CallOption) (*Response, error) {
+func (c *Client) execute(ctx context.Context, body, ret interface{}, opts ...CallOption) (*Response, error) {
 	data, err := stringify(body)
 	if err != nil {
 		return nil, err
 	}
 	buf := bytes.NewBuffer(data)
-	return c.do(http.MethodPost, expectStatusCode(http.StatusOK), ret, buf, opts...)
+	return c.do(ctx, http.MethodPost, expectStatusCode(http.StatusOK), ret, buf, opts...)
 }
 
 // do sends request to cosmos, validates the response and returns is.
-func (c *Client) do(method string, validator statusCodeValidatorFunc, respBody interface{}, data *bytes.Buffer, opts ...CallOption) (*Response, error) {
+func (c *Client) do(ctx context.Context, method string, validator statusCodeValidatorFunc, respBody interface{}, data *bytes.Buffer, opts ...CallOption) (*Response, error) {
 	req, err := http.NewRequest(method, c.getURL(), data)
 	if err != nil {
 		return nil, err
 	}
+
+	req = req.WithContext(ctx)
 
 	r := ResourceRequest(c.rLink, c.rType, req)
 	// apply headers

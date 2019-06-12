@@ -1,10 +1,12 @@
 package dbtest
 
 import (
+	"context"
 	"os"
 	"testing"
+	"time"
 
-	"github.com/spacycoder/test/cosmos"
+	"github.com/spacycoder/cosmosdb-go-sdk/cosmos"
 )
 
 func getClient() (*cosmos.Client, error) {
@@ -40,20 +42,26 @@ func TestCosmos(t *testing.T) {
 
 func cleanup(t *testing.T, client *cosmos.Client) {
 	// Delete user
-	_, err := client.Database(dbID).User("myUpdatedUser").Delete()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	_, err := client.Database(dbID).User("myUpdatedUser").Delete(ctx)
 	if err != nil {
 		t.Fatalf("Deleting user caused error: %s", err.Error())
 	}
 
 	// Delete collection
+	ctx2, cancel2 := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel2()
 	coll := client.Database(dbID).Collection(collID)
-	_, err = coll.Delete()
+	_, err = coll.Delete(ctx2)
 	if err != nil {
 		t.Fatalf("Deleting collection caused error: %s", err.Error())
 	}
 
 	// Delete database
-	_, err = client.Database(dbID).Delete()
+	ctx3, cancel3 := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel3()
+	_, err = client.Database(dbID).Delete(ctx3)
 	if err != nil {
 		t.Fatalf("Deleting collection caused error: %s", err.Error())
 	}
@@ -61,7 +69,8 @@ func cleanup(t *testing.T, client *cosmos.Client) {
 
 func testDatabaseOperations(t *testing.T, client *cosmos.Client) {
 	// Create db
-	newDbRef, err := client.Databases().Create(dbID)
+	ctx := context.Background()
+	newDbRef, err := client.Databases().Create(ctx, dbID)
 	if err != nil {
 		t.Fatalf("Creating database caused error: %s", err.Error())
 	}
@@ -71,7 +80,7 @@ func testDatabaseOperations(t *testing.T, client *cosmos.Client) {
 
 	// Read db
 	db := client.Database(dbID)
-	testDb, err := db.Read()
+	testDb, err := db.Read(ctx)
 	if err != nil {
 		t.Fatalf("Reading database caused error: %s", err.Error())
 	}
@@ -81,7 +90,7 @@ func testDatabaseOperations(t *testing.T, client *cosmos.Client) {
 
 	// List databases
 	dbs := client.Databases()
-	_, err = dbs.ReadAll()
+	_, err = dbs.ReadAll(ctx)
 	if err != nil {
 		t.Fatalf("Listing databases caused error: %s", err.Error())
 	}
@@ -91,20 +100,20 @@ func testDatabaseOperations(t *testing.T, client *cosmos.Client) {
 func testCollections(t *testing.T, client *cosmos.Client) {
 	db := client.Database(dbID)
 	colls := db.Collections()
-
+	ctx := context.Background()
 	newCollDef := &cosmos.CollectionDefinition{
 		IndexingPolicy: cosmos.IndexingPolicy{IndexingMode: "consistent"},
 		Resource:       cosmos.Resource{ID: collID},
 		PartitionKey:   cosmos.PartitionKeyDefinition{Kind: "hash", Paths: []string{"/name"}}}
 	// Create collection
-	_, err := colls.Create(newCollDef)
+	_, err := colls.Create(ctx, newCollDef)
 	if err != nil {
 		t.Fatalf("Creating collection caused error: %s", err.Error())
 	}
 
 	coll := db.Collection(collID)
 	// Read collection
-	collDef, err := coll.Read()
+	collDef, err := coll.Read(ctx)
 	if err != nil {
 		t.Fatalf("Reading collection caused error: %s", err.Error())
 	}
@@ -136,7 +145,7 @@ func testCollections(t *testing.T, client *cosmos.Client) {
 	*/
 
 	// List collections
-	collDefs, err := colls.ReadAll()
+	collDefs, err := colls.ReadAll(ctx)
 	if err != nil {
 		t.Fatalf("Listing collections caused error: %s", err.Error())
 	}
@@ -150,6 +159,7 @@ func testDocuments(t *testing.T, client *cosmos.Client) {
 	db := client.Database(dbID)
 	coll := db.Collection(collID)
 	docs := coll.Documents()
+	ctx := context.Background()
 
 	user1 := &TestDoc{
 		ID:   "user1",
@@ -157,13 +167,13 @@ func testDocuments(t *testing.T, client *cosmos.Client) {
 		Age:  150,
 	}
 	// Create document
-	_, err := docs.Create(user1, cosmos.PartitionKey(user1.Name))
+	_, err := docs.Create(ctx, user1, cosmos.PartitionKey(user1.Name))
 	if err != nil {
 		t.Fatalf("Creating doc caused error: %s", err.Error())
 	}
 
 	retUser := &TestDoc{}
-	_, err = coll.Document("user1").Read(retUser, cosmos.PartitionKey("Lars"))
+	_, err = coll.Document("user1").Read(ctx, retUser, cosmos.PartitionKey("Lars"))
 	if err != nil {
 		t.Fatalf("Read doc caused error: %s", err.Error())
 	}
@@ -178,7 +188,7 @@ func testDocuments(t *testing.T, client *cosmos.Client) {
 		Age:  20,
 	}
 	var updatedUser TestDoc
-	_, err = coll.Document(retUser.ID).Replace(newUser, &updatedUser, cosmos.PartitionKey(retUser.Name))
+	_, err = coll.Document(retUser.ID).Replace(ctx, newUser, &updatedUser, cosmos.PartitionKey(retUser.Name))
 	if err != nil {
 		t.Fatalf("Replace doc caused error: %s", err.Error())
 	}
@@ -192,14 +202,14 @@ func testDocuments(t *testing.T, client *cosmos.Client) {
 	}
 
 	// Create doc 2
-	_, err = docs.Create(user2, cosmos.PartitionKey(user2.Name))
+	_, err = docs.Create(ctx, user2, cosmos.PartitionKey(user2.Name))
 	if err != nil {
 		t.Fatalf("Creating doc caused error: %s", err.Error())
 	}
 
 	// List all docs
 	users := []TestDoc{}
-	_, err = docs.ReadAll(&users)
+	_, err = docs.ReadAll(ctx, &users)
 	if err != nil {
 		t.Fatalf("Listing docs caused error: %s", err.Error())
 	}
@@ -210,7 +220,7 @@ func testDocuments(t *testing.T, client *cosmos.Client) {
 	// Query docs
 	qUsers := []TestDoc{}
 	query := cosmos.Q("SELECT * FROM root WHERE root.name = @NAME", cosmos.P{Name: "@NAME", Value: user1.Name})
-	_, err = docs.Query(query, &qUsers, cosmos.CrossPartition())
+	_, err = docs.Query(ctx, query, &qUsers, cosmos.CrossPartition())
 	if err != nil {
 		t.Fatalf("Querying docs caused error: %s", err.Error())
 	}
@@ -218,11 +228,11 @@ func testDocuments(t *testing.T, client *cosmos.Client) {
 		t.Fatalf("Should be 1 but is: %d", len(qUsers))
 	}
 
-	_, err = coll.Document("user1").Delete(cosmos.PartitionKey(user1.Name))
+	_, err = coll.Document("user1").Delete(ctx, cosmos.PartitionKey(user1.Name))
 	if err != nil {
 		t.Fatalf("Deleting user1 caused error: %s", err.Error())
 	}
-	_, err = coll.Document("user2").Delete(cosmos.PartitionKey(user2.Name))
+	_, err = coll.Document("user2").Delete(ctx, cosmos.PartitionKey(user2.Name))
 	if err != nil {
 		t.Fatalf("Deleting user2 caused error: %s", err.Error())
 	}
@@ -232,8 +242,9 @@ func testStoredProcedure(t *testing.T, client *cosmos.Client) {
 	coll := client.Database(dbID).Collection(collID)
 
 	// Create Stored Procedure
+	ctx := context.Background()
 	spDef := &cosmos.StoredProcedureDefinition{Resource: cosmos.Resource{ID: "mySP"}, Body: "function () {\r\n    var context = getContext();\r\n    var response = context.getResponse();\r\n\r\n    response.setBody(\"Hello, World\");\r\n}"}
-	createdSP, err := coll.StoredProcedures().Create(spDef)
+	createdSP, err := coll.StoredProcedures().Create(ctx, spDef)
 	if err != nil {
 		t.Fatalf("Creating stored procedure caused error: %s", err.Error())
 	}
@@ -243,7 +254,7 @@ func testStoredProcedure(t *testing.T, client *cosmos.Client) {
 
 	// Execute Stored Procedure
 	var res string
-	_, err = coll.StoredProcedure("mySP").Execute("", &res)
+	_, err = coll.StoredProcedure("mySP").Execute(ctx, "", &res)
 	if err != nil {
 		t.Fatalf("Executing stored procedure caused error: %s", err.Error())
 	}
@@ -253,13 +264,13 @@ func testStoredProcedure(t *testing.T, client *cosmos.Client) {
 
 	// Replace Stored Procedure
 	newSpDef := &cosmos.StoredProcedureDefinition{Resource: cosmos.Resource{ID: "mySP"}, Body: "function (greet, someone) {\r\n    var context = getContext();\r\n    var response = context.getResponse();\r\n\r\n    response.setBody(greet + \", \"+ someone);\r\n}"}
-	_, err = coll.StoredProcedure("mySP").Replace(newSpDef)
+	_, err = coll.StoredProcedure("mySP").Replace(ctx, newSpDef)
 	if err != nil {
 		t.Fatalf("Replacing stored procedure caused error: %s", err.Error())
 	}
 
 	var res2 string
-	_, err = coll.StoredProcedure("mySP").Execute([]string{"Hello", "Cosmos"}, &res2)
+	_, err = coll.StoredProcedure("mySP").Execute(ctx, []string{"Hello", "Cosmos"}, &res2)
 	if err != nil {
 		t.Fatalf("Executing stored procedure caused error: %s", err.Error())
 	}
@@ -268,7 +279,7 @@ func testStoredProcedure(t *testing.T, client *cosmos.Client) {
 	}
 
 	// List all stored procedures
-	sprocs, err := coll.StoredProcedures().ReadAll()
+	sprocs, err := coll.StoredProcedures().ReadAll(ctx)
 	if err != nil {
 		t.Fatalf("Listing stored procedure caused error: %s", err.Error())
 	}
@@ -277,7 +288,7 @@ func testStoredProcedure(t *testing.T, client *cosmos.Client) {
 	}
 
 	// Delete stored procedure
-	_, err = coll.StoredProcedure("mySP").Delete()
+	_, err = coll.StoredProcedure("mySP").Delete(ctx)
 	if err != nil {
 		t.Fatalf("Deleting stored procedure caused error: %s", err.Error())
 	}
@@ -289,8 +300,9 @@ func testUDF(t *testing.T, client *cosmos.Client) {
 		Body:     "function tax(income) {\r\n    if(income == undefined) \r\n        throw 'no input';\r\n    if (income < 1000) \r\n        return income * 0.1;\r\n    else if (income < 10000) \r\n        return income * 0.2;\r\n    else\r\n        return income * 0.4;\r\n}",
 		Resource: cosmos.Resource{ID: "myUDF"},
 	}
+	ctx := context.Background()
 	// Create UDF
-	createdUDF, err := coll.UDFs().Create(udfDef)
+	createdUDF, err := coll.UDFs().Create(ctx, udfDef)
 	if err != nil {
 		t.Fatalf("Creating UDF caused error: %s", err.Error())
 	}
@@ -303,7 +315,7 @@ func testUDF(t *testing.T, client *cosmos.Client) {
 		Body:     "function tax(income) {\r\n    if(income == undefined) \r\n        throw 'no input';\r\n    if (income < 2000) \r\n        return income * 0.1;\r\n    else if (income < 10000) \r\n        return income * 0.2;\r\n    else\r\n        return income * 0.4;\r\n}",
 		Resource: cosmos.Resource{ID: "myUDF"},
 	}
-	updatedUDF, err := coll.UDF("myUDF").Replace(newUDF)
+	updatedUDF, err := coll.UDF("myUDF").Replace(ctx, newUDF)
 	if err != nil {
 		t.Fatalf("Replacing UDF caused error: %s", err.Error())
 	}
@@ -312,7 +324,7 @@ func testUDF(t *testing.T, client *cosmos.Client) {
 	}
 
 	// List UDFs
-	udfs, err := coll.UDFs().ReadAll()
+	udfs, err := coll.UDFs().ReadAll(ctx)
 	if err != nil {
 		t.Fatalf("Listing UDFs caused error: %s", err.Error())
 	}
@@ -321,7 +333,7 @@ func testUDF(t *testing.T, client *cosmos.Client) {
 	}
 
 	// Delete UDF
-	_, err = coll.UDF("myUDF").Delete()
+	_, err = coll.UDF("myUDF").Delete(ctx)
 	if err != nil {
 		t.Fatalf("Deleting UDFs caused error: %s", err.Error())
 	}
@@ -337,7 +349,8 @@ func testTrigger(t *testing.T, client *cosmos.Client) {
 	}
 
 	// Create Trigger
-	_, err := coll.Triggers().Create(triggerDef)
+	ctx := context.Background()
+	_, err := coll.Triggers().Create(ctx, triggerDef)
 	if err != nil {
 		t.Fatalf("Creating trigger caused error: %s", err.Error())
 	}
@@ -349,7 +362,7 @@ func testTrigger(t *testing.T, client *cosmos.Client) {
 		TriggerOperation: "All",
 		TriggerType:      "Post",
 	}
-	updatedTriggerDef, err := coll.Trigger("myTrigger").Replace(newTriggerDef)
+	updatedTriggerDef, err := coll.Trigger("myTrigger").Replace(ctx, newTriggerDef)
 	if err != nil {
 		t.Fatalf("Replacing trigger caused error: %s", err.Error())
 	}
@@ -358,7 +371,7 @@ func testTrigger(t *testing.T, client *cosmos.Client) {
 	}
 
 	// List triggers
-	triggers, err := coll.Triggers().ReadAll()
+	triggers, err := coll.Triggers().ReadAll(ctx)
 	if err != nil {
 		t.Fatalf("Listing triggers caused error: %s", err.Error())
 	}
@@ -367,7 +380,7 @@ func testTrigger(t *testing.T, client *cosmos.Client) {
 	}
 
 	// Delete trigger
-	_, err = coll.Trigger("myTrigger").Delete()
+	_, err = coll.Trigger("myTrigger").Delete(ctx)
 	if err != nil {
 		t.Fatalf("Deleting UDFs caused error: %s", err.Error())
 	}
@@ -378,14 +391,15 @@ func testUser(t *testing.T, client *cosmos.Client) {
 	myUser := &cosmos.UserDefinition{
 		Resource: cosmos.Resource{ID: "myUser"},
 	}
+	ctx := context.Background()
 	// Create user
-	_, err := db.Users().Create(myUser)
+	_, err := db.Users().Create(ctx, myUser)
 	if err != nil {
 		t.Fatalf("Creating user caused error: %s", err.Error())
 	}
 
 	// Read user
-	user, err := db.User("myUser").Read()
+	user, err := db.User("myUser").Read(ctx)
 	if err != nil {
 		t.Fatalf("Reading user caused error: %s", err.Error())
 	}
@@ -397,7 +411,7 @@ func testUser(t *testing.T, client *cosmos.Client) {
 		Resource: cosmos.Resource{ID: "myUpdatedUser"},
 	}
 	// Replace user
-	updatedUser, err := db.User("myUser").Replace(newUser)
+	updatedUser, err := db.User("myUser").Replace(ctx, newUser)
 	if err != nil {
 		t.Fatalf("Replacing user caused error: %s", err.Error())
 	}
@@ -406,7 +420,7 @@ func testUser(t *testing.T, client *cosmos.Client) {
 	}
 
 	// List users
-	allUsers, err := db.Users().ReadAll()
+	allUsers, err := db.Users().ReadAll(ctx)
 	if err != nil {
 		t.Fatalf("Listing user caused error: %s", err.Error())
 	}
@@ -418,21 +432,21 @@ func testUser(t *testing.T, client *cosmos.Client) {
 func testPermissions(t *testing.T, client *cosmos.Client) {
 	db := client.Database(dbID)
 	myUser := db.User("myUpdatedUser")
-
+	ctx := context.Background()
 	myPermission := &cosmos.PermissionDefinition{ID: "test_permission", PermissionMode: "All", Resource: "letsSEEEEE"}
 	// Create permission
-	_, err := myUser.Permissions().Create(myPermission)
+	_, err := myUser.Permissions().Create(ctx, myPermission)
 	if err != nil {
 		t.Fatalf("Creating permission caused error: %s", err.Error())
 	}
 
 	newPermission := &cosmos.PermissionDefinition{ID: "test_permission2", PermissionMode: "All", Resource: "letsSEEEEE"}
-	_, err = myUser.Permission("test_permission").Replace(newPermission)
+	_, err = myUser.Permission("test_permission").Replace(ctx, newPermission)
 	if err != nil {
 		t.Fatalf("Replacing permission caused error: %s", err.Error())
 	}
 
-	perm, err := myUser.Permission("test_permission2").Read()
+	perm, err := myUser.Permission("test_permission2").Read(ctx)
 	if err != nil {
 		t.Fatalf("Reading permission caused error: %s", err.Error())
 	}
@@ -440,7 +454,7 @@ func testPermissions(t *testing.T, client *cosmos.Client) {
 		t.Fatalf("Wrong permission mode: %s", perm.PermissionMode)
 	}
 
-	allPermissions, err := myUser.Permissions().ReadAll()
+	allPermissions, err := myUser.Permissions().ReadAll(ctx)
 	if err != nil {
 		t.Fatalf("Listing permission caused error: %s", err.Error())
 	}
@@ -448,19 +462,20 @@ func testPermissions(t *testing.T, client *cosmos.Client) {
 		t.Fatalf("Wrong amount of permissions: %d", len(allPermissions))
 	}
 
-	_, err = myUser.Permission("test_permission2").Delete()
+	_, err = myUser.Permission("test_permission2").Delete(ctx)
 	if err != nil {
 		t.Fatalf("Deleting permission caused error: %s", err.Error())
 	}
 }
 
 func testOffers(t *testing.T, client *cosmos.Client) {
-	coll, err := client.Database(dbID).Collection(collID).Read()
+	ctx := context.Background()
+	coll, err := client.Database(dbID).Collection(collID).Read(ctx)
 	if err != nil {
 		t.Fatalf("Reading collection caused error: %s", err.Error())
 	}
 
-	offers, err := client.Offers().ReadAll()
+	offers, err := client.Offers().ReadAll(ctx)
 	if err != nil {
 		t.Fatalf("Listing offers caused error: %s", err.Error())
 	}
@@ -487,10 +502,10 @@ func testOffers(t *testing.T, client *cosmos.Client) {
 		OfferResourceID: coll.Rid,
 		Resource:        cosmos.Resource{ID: offers[0].ID, Rid: offers[0].Rid},
 	}
-	client.Offer(offers[0].ID).Replace(newOffer)
+	client.Offer(offers[0].ID).Replace(ctx, newOffer)
 
 	offerQuery := cosmos.Q("SELECT * FROM root")
-	queryOffers, err := client.Offers().Query(offerQuery)
+	queryOffers, err := client.Offers().Query(ctx, offerQuery)
 	if err != nil {
 		t.Fatalf("Querying offers caused error: %s", err.Error())
 	}

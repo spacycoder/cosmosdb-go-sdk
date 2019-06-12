@@ -1,5 +1,7 @@
 package cosmos
 
+import "context"
+
 // Database performs operations on a single database
 type Database struct {
 	client Client
@@ -54,26 +56,26 @@ func (d Database) Collections() *Collections {
 }
 
 // Read database
-func (d *Database) Read() (*DatabaseDefinition, error) {
+func (d *Database) Read(ctx context.Context) (*DatabaseDefinition, error) {
 	ret := &DatabaseDefinition{}
-	_, err := d.client.read(ret)
+	_, err := d.client.read(ctx, ret)
 	return ret, err
 }
 
 // Delete database
-func (d *Database) Delete() (*Response, error) {
-	return d.client.delete()
+func (d *Database) Delete(ctx context.Context) (*Response, error) {
+	return d.client.delete(ctx)
 }
 
 // Create a new database
-func (d *Databases) Create(dbID string, opts ...CallOption) (*DatabaseDefinition, error) {
+func (d *Databases) Create(ctx context.Context, dbID string, opts ...CallOption) (*DatabaseDefinition, error) {
 	dbDef := &DatabaseDefinition{}
 	var body struct {
 		ID string `json:"id"`
 	}
 	body.ID = dbID
 
-	_, err := d.client.create(body, dbDef, opts...)
+	_, err := d.client.create(ctx, body, dbDef, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -81,12 +83,12 @@ func (d *Databases) Create(dbID string, opts ...CallOption) (*DatabaseDefinition
 }
 
 // ReadAll databases
-func (d *Databases) ReadAll(opts ...CallOption) (*DatabaseDefinitions, error) {
+func (d *Databases) ReadAll(ctx context.Context, opts ...CallOption) (*DatabaseDefinitions, error) {
 	data := struct {
 		Databases DatabaseDefinitions `json:"Databases,omitempty"`
 		Count     int                 `json:"_count,omitempty"`
 	}{}
-	_, err := d.client.read(&data, opts...)
+	_, err := d.client.read(ctx, &data, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -94,13 +96,13 @@ func (d *Databases) ReadAll(opts ...CallOption) (*DatabaseDefinitions, error) {
 }
 
 // Query databases
-func (d *Databases) Query(query *SqlQuerySpec, opts ...CallOption) (*DatabaseDefinitions, error) {
+func (d *Databases) Query(ctx context.Context, query *SqlQuerySpec, opts ...CallOption) (*DatabaseDefinitions, error) {
 	data := struct {
 		Databases DatabaseDefinitions `json:"Databases,omitempty"`
 		Count     int                 `json:"_count,omitempty"`
 	}{}
 
-	_, err := d.client.query(query, &data, opts...)
+	_, err := d.client.query(ctx, query, &data, opts...)
 	if err != nil {
 		return nil, err
 	}

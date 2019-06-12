@@ -1,5 +1,7 @@
 package cosmos
 
+import "context"
+
 type StoredProcedure struct {
 	client            Client
 	coll              Collection
@@ -35,9 +37,9 @@ func newStoredProcedures(coll Collection) *StoredProcedures {
 	return udfs
 }
 
-func (s *StoredProcedures) Create(newStoredProcedure *StoredProcedureDefinition, opts ...CallOption) (*StoredProcedureDefinition, error) {
+func (s *StoredProcedures) Create(ctx context.Context, newStoredProcedure *StoredProcedureDefinition, opts ...CallOption) (*StoredProcedureDefinition, error) {
 	storedProcedureResp := &StoredProcedureDefinition{}
-	_, err := s.client.create(newStoredProcedure, &storedProcedureResp, opts...)
+	_, err := s.client.create(ctx, newStoredProcedure, &storedProcedureResp, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -45,9 +47,9 @@ func (s *StoredProcedures) Create(newStoredProcedure *StoredProcedureDefinition,
 	return storedProcedureResp, err
 }
 
-func (s *StoredProcedure) Replace(newStoredProcedure *StoredProcedureDefinition, opts ...CallOption) (*StoredProcedureDefinition, error) {
+func (s *StoredProcedure) Replace(ctx context.Context, newStoredProcedure *StoredProcedureDefinition, opts ...CallOption) (*StoredProcedureDefinition, error) {
 	storedProcedureResp := &StoredProcedureDefinition{}
-	_, err := s.client.replace(newStoredProcedure, &storedProcedureResp, opts...)
+	_, err := s.client.replace(ctx, newStoredProcedure, &storedProcedureResp, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -55,13 +57,13 @@ func (s *StoredProcedure) Replace(newStoredProcedure *StoredProcedureDefinition,
 	return storedProcedureResp, err
 }
 
-func (s *StoredProcedures) ReadAll(opts ...CallOption) ([]StoredProcedureDefinition, error) {
+func (s *StoredProcedures) ReadAll(ctx context.Context, opts ...CallOption) ([]StoredProcedureDefinition, error) {
 	data := struct {
 		StoredProcedures []StoredProcedureDefinition `json:"StoredProcedures,omitempty"`
 		Count            int                         `json:"_count,omitempty"`
 	}{}
 
-	_, err := s.client.read(&data, opts...)
+	_, err := s.client.read(ctx, &data, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -69,11 +71,11 @@ func (s *StoredProcedures) ReadAll(opts ...CallOption) ([]StoredProcedureDefinit
 	return data.StoredProcedures, err
 }
 
-func (s *StoredProcedure) Delete(opts ...CallOption) (*Response, error) {
-	return s.client.delete(opts...)
+func (s *StoredProcedure) Delete(ctx context.Context, opts ...CallOption) (*Response, error) {
+	return s.client.delete(ctx, opts...)
 }
 
 // Execute stored procedure
-func (s *StoredProcedure) Execute(params, body interface{}, opts ...CallOption) (*Response, error) {
-	return s.client.execute(params, &body, opts...)
+func (s *StoredProcedure) Execute(ctx context.Context, params, body interface{}, opts ...CallOption) (*Response, error) {
+	return s.client.execute(ctx, params, &body, opts...)
 }

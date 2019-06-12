@@ -1,5 +1,7 @@
 package cosmos
 
+import "context"
+
 // Permission model
 type Permission struct {
 	client       Client
@@ -43,9 +45,9 @@ func newPermissions(user User) *Permissions {
 }
 
 // Replace permission.
-func (u *Permission) Replace(permission *PermissionDefinition, opts ...CallOption) (*PermissionDefinition, error) {
+func (u *Permission) Replace(ctx context.Context, permission *PermissionDefinition, opts ...CallOption) (*PermissionDefinition, error) {
 	updatedPermission := &PermissionDefinition{}
-	_, err := u.client.replace(permission, &updatedPermission, opts...)
+	_, err := u.client.replace(ctx, permission, &updatedPermission, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -53,25 +55,25 @@ func (u *Permission) Replace(permission *PermissionDefinition, opts ...CallOptio
 }
 
 // Delete permission.
-func (u *Permission) Delete(opts ...CallOption) (*Response, error) {
-	return u.client.delete(opts...)
+func (u *Permission) Delete(ctx context.Context, opts ...CallOption) (*Response, error) {
+	return u.client.delete(ctx, opts...)
 }
 
 // Read permission.
-func (u *Permission) Read(opts ...CallOption) (*PermissionDefinition, error) {
+func (u *Permission) Read(ctx context.Context, opts ...CallOption) (*PermissionDefinition, error) {
 	permission := &PermissionDefinition{}
-	_, err := u.client.read(permission, opts...)
+	_, err := u.client.read(ctx, permission, opts...)
 	return permission, err
 }
 
 // ReadAll permissions.
-func (u *Permissions) ReadAll(opts ...CallOption) ([]PermissionDefinition, error) {
+func (u *Permissions) ReadAll(ctx context.Context, opts ...CallOption) ([]PermissionDefinition, error) {
 	data := struct {
 		Permissions []PermissionDefinition `json:"permissions,omitempty"`
 		Count       int                    `json:"_count,omitempty"`
 	}{}
 
-	_, err := u.client.read(&data, opts...)
+	_, err := u.client.read(ctx, &data, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -79,9 +81,9 @@ func (u *Permissions) ReadAll(opts ...CallOption) ([]PermissionDefinition, error
 }
 
 // Create a new permission
-func (u *Permissions) Create(permission *PermissionDefinition, opts ...CallOption) (*PermissionDefinition, error) {
+func (u *Permissions) Create(ctx context.Context, permission *PermissionDefinition, opts ...CallOption) (*PermissionDefinition, error) {
 	createdPermission := &PermissionDefinition{}
-	_, err := u.client.create(permission, &createdPermission, opts...)
+	_, err := u.client.create(ctx, permission, &createdPermission, opts...)
 	if err != nil {
 		return nil, err
 	}

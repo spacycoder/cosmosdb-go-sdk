@@ -1,5 +1,7 @@
 package cosmos
 
+import "context"
+
 // Collection performs operations on a given collection.
 type Collection struct {
 	client Client
@@ -78,9 +80,9 @@ func newCollections(db Database) *Collections {
 }
 
 // Create new collection
-func (c *Collections) Create(newColl *CollectionDefinition) (*CollectionDefinition, error) {
+func (c *Collections) Create(ctx context.Context, newColl *CollectionDefinition) (*CollectionDefinition, error) {
 	respColl := &CollectionDefinition{}
-	_, err := c.client.create(newColl, respColl)
+	_, err := c.client.create(ctx, newColl, respColl)
 	if err != nil {
 		return nil, err
 	}
@@ -89,32 +91,32 @@ func (c *Collections) Create(newColl *CollectionDefinition) (*CollectionDefiniti
 }
 
 // ReadAll returns all collections in a database.
-func (c *Collections) ReadAll() (*CollectionDefinitions, error) {
+func (c *Collections) ReadAll(ctx context.Context) (*CollectionDefinitions, error) {
 	data := struct {
 		Collections CollectionDefinitions `json:"DocumentCollections,omitempty"`
 		Count       int                   `json:"_count,omitempty"`
 	}{}
-	_, err := c.client.read(&data)
+	_, err := c.client.read(ctx, &data)
 	return &data.Collections, err
 }
 
 // Read returns one collection
-func (c *Collection) Read() (*CollectionDefinition, error) {
+func (c *Collection) Read(ctx context.Context) (*CollectionDefinition, error) {
 	coll := &CollectionDefinition{}
-	_, err := c.client.read(coll)
+	_, err := c.client.read(ctx, coll)
 	return coll, err
 }
 
 // Delete collection
-func (c *Collection) Delete() (*Response, error) {
-	return c.client.delete()
+func (c *Collection) Delete(ctx context.Context) (*Response, error) {
+	return c.client.delete(ctx)
 }
 
 // Replace collection
-func (c *Collection) Replace(i *IndexingPolicy, ret interface{}, opts ...CallOption) (*Response, error) {
+func (c *Collection) Replace(ctx context.Context, i *IndexingPolicy, ret interface{}, opts ...CallOption) (*Response, error) {
 	body := struct {
 		ID             string          `json:"id"`
 		IndexingPolicy *IndexingPolicy `json:"indexingPolicy"`
 	}{c.collID, i}
-	return c.client.replace(&body, ret, opts...)
+	return c.client.replace(ctx, &body, ret, opts...)
 }

@@ -1,5 +1,7 @@
 package cosmos
 
+import "context"
+
 type Trigger struct {
 	client    Client
 	coll      Collection
@@ -35,9 +37,9 @@ func newTriggers(coll Collection) *Triggers {
 	return triggers
 }
 
-func (s *Triggers) Create(newTrigger *TriggerDefintion, opts ...CallOption) (*TriggerDefintion, error) {
+func (s *Triggers) Create(ctx context.Context, newTrigger *TriggerDefintion, opts ...CallOption) (*TriggerDefintion, error) {
 	createdTrigger := &TriggerDefintion{}
-	_, err := s.client.create(newTrigger, &createdTrigger, opts...)
+	_, err := s.client.create(ctx, newTrigger, &createdTrigger, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -45,9 +47,9 @@ func (s *Triggers) Create(newTrigger *TriggerDefintion, opts ...CallOption) (*Tr
 	return createdTrigger, err
 }
 
-func (s *Trigger) Replace(trigger *TriggerDefintion, opts ...CallOption) (*TriggerDefintion, error) {
+func (s *Trigger) Replace(ctx context.Context, trigger *TriggerDefintion, opts ...CallOption) (*TriggerDefintion, error) {
 	updatedTrigger := &TriggerDefintion{}
-	_, err := s.client.replace(trigger, &updatedTrigger, opts...)
+	_, err := s.client.replace(ctx, trigger, &updatedTrigger, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -55,24 +57,24 @@ func (s *Trigger) Replace(trigger *TriggerDefintion, opts ...CallOption) (*Trigg
 	return updatedTrigger, err
 }
 
-func (s *Triggers) ReadAll(opts ...CallOption) ([]TriggerDefintion, error) {
+func (s *Triggers) ReadAll(ctx context.Context, opts ...CallOption) ([]TriggerDefintion, error) {
 	data := struct {
 		Triggers []TriggerDefintion `json:"triggers,omitempty"`
 		Count    int                `json:"_count,omitempty"`
 	}{}
 
-	_, err := s.client.read(&data, opts...)
+	_, err := s.client.read(ctx, &data, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return data.Triggers, err
 }
 
-func (s *Trigger) Delete(opts ...CallOption) (*Response, error) {
-	return s.client.delete(opts...)
+func (s *Trigger) Delete(ctx context.Context, opts ...CallOption) (*Response, error) {
+	return s.client.delete(ctx, opts...)
 }
 
 // Execute stored procedure
-func (s *Trigger) Execute(params, body interface{}, opts ...CallOption) (*Response, error) {
-	return s.client.execute(params, &body, opts...)
+func (s *Trigger) Execute(ctx context.Context, params, body interface{}, opts ...CallOption) (*Response, error) {
+	return s.client.execute(ctx, params, &body, opts...)
 }

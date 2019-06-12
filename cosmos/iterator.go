@@ -1,5 +1,7 @@
 package cosmos
 
+import "context"
+
 // Iterator used to iterate through documents.
 type Iterator struct {
 	continuationToken string
@@ -16,7 +18,7 @@ func NewIterator(docs *Documents, query *SqlQuerySpec, data interface{}, opts ..
 		docs: docs,
 		next: true,
 		source: func(docs *Documents, internalOpts ...CallOption) (*Response, error) {
-			return docs.Query(query, data, append(opts, internalOpts...)...)
+			return docs.Query(context.Background(), query, data, append(opts, internalOpts...)...)
 		},
 	}
 }
