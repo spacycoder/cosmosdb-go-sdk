@@ -43,7 +43,8 @@ func main() {
         Name: "Todd",
         Age: 99
     }
-    res, err := client.Database("dbID").Collection("CollectionID").Documents(newPerson).Create()
+    ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+    res, err := client.Database("dbID").Collection("CollectionID").Documents(newPerson).Create(ctx)
 }
 
 ```
@@ -59,8 +60,9 @@ type Person struct {
 
 func main() {
     client, err := cosmos.New("YOUR_CONNECTION_STRING")
+    ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
     var person Person
-    res, err := client.Database("dbID").Collection("CollectionID").Document("docID").Read(&person, cosmos.PartitionKey(99))
+    res, err := client.Database("dbID").Collection("CollectionID").Document("docID").Read(ctx, &person, cosmos.PartitionKey(99))
 }
 ```
 
@@ -75,8 +77,9 @@ type Person struct {
 
 func main() {
     client, err := cosmos.New("YOUR_CONNECTION_STRING")
+    ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
     var people []Person
-    res, err := client.Database("dbID").Collection("CollectionID").Documents().ReadAll(&people, cosmos.CrossPartition())
+    res, err := client.Database("dbID").Collection("CollectionID").Documents().ReadAll(ctx, &people, cosmos.CrossPartition())
 }
 ```
 
@@ -94,10 +97,10 @@ func main() {
     db := client.Database("dbID")
     coll := db.Collection("CollectionID")
     var people []Person
-
+    ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
     params := []cosmos.P{{Name: "@LENGTH", Value: 180},{Name: "@AGE", Value: 30}}
     query := cosmos.Q("SELECT * FROM root WHERE root.length < @LENGTH AND  root.age > @AGE", params...)
-    res, err := coll.Documents().Query(query, &people, cosmos.CrossPartition())
+    res, err := coll.Documents().Query(ctx, query, &people, cosmos.CrossPartition())
 }
 ```
 
@@ -118,11 +121,12 @@ func main() {
     db := client.Database("dbID")
     coll := db.Collection("CollectionID")
 
+    ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
     var people []Person
     params := []cosmos.P{{Name: "@LENGTH", Value: 180},{Name: "@AGE", Value: 30}}
     qb := qbuilder.New()
     query := qb.Select("*").From("root").And("root.length < @LENGTH").And("root.age > @AGE").Params(params...).Build()
-    res, err := coll.Documents().Query(query, &people, cosmos.CrossPartition())
+    res, err := coll.Documents().Query(ctx, query, &people, cosmos.CrossPartition())
 }
 ```
 
@@ -156,7 +160,9 @@ func main() {
             PartitionKey:   cosmos.PartitionKeyDefinition{Kind: "hash", Paths: []string{"/name"}
             }
         }
-        _, err := db.Collections().Create(newCollDef)
+
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+        _, err := db.Collections().Create(ctx, newCollDef)
     }
 ```
 
@@ -169,7 +175,8 @@ func main() {
         client, err := cosmos.New("YOUR_CONNECTION_STRING")
         db := client.Database("dbID")
 
-        collDef, err := db.Collection("collID").Read()
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+        collDef, err := db.Collection("collID").Read(ctx)
     }
 ```
 
@@ -182,7 +189,8 @@ func main() {
         client, err := cosmos.New("YOUR_CONNECTION_STRING")
         db := client.Database("dbID")
 
-        collDefs, err :=  db.Collections().ReadAll()
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+        collDefs, err :=  db.Collections().ReadAll(ctx)
     }
 ```
 
@@ -195,7 +203,8 @@ func main() {
         client, err := cosmos.New("YOUR_CONNECTION_STRING")
         db := client.Database("dbID")
 
-        res, err :=  db.Collection("collID").Delete()
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+        res, err :=  db.Collection("collID").Delete(ctx)
     }
 ```
 
@@ -208,7 +217,8 @@ func main() {
 
     func main() {
         client, err := cosmos.New("YOUR_CONNECTION_STRING")
-        dbDef, err := client.Databases().Create("DATABASE_ID")
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+        dbDef, err := client.Databases().Create(ctx, "DATABASE_ID")
     }
 ```
 
@@ -219,7 +229,8 @@ func main() {
 
     func main() {
         client, err := cosmos.New("YOUR_CONNECTION_STRING")
-        dbDef, err := client.Database("DATABASE_ID").Read()
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+        dbDef, err := client.Database(ctx, "DATABASE_ID").Read()
     }
 ```
 
@@ -229,8 +240,9 @@ func main() {
     import "github.com/SpacyCoder/cosmosdb-go-sdk/cosmos"
 
     func main() {
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
         client, err := cosmos.New("YOUR_CONNECTION_STRING")
-        dbDefs, err = client.Databases().ReadAll()
+        dbDefs, err = client.Databases().ReadAll(ctx)
     }
 ```
 
@@ -240,8 +252,9 @@ func main() {
     import "github.com/SpacyCoder/cosmosdb-go-sdk/cosmos"
 
     func main() {
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
         client, err := cosmos.New("YOUR_CONNECTION_STRING")
-        _, err = client.Database(dbID).Delete()
+        _, err = client.Database(dbID).Delete(ctx)
     }
 ```
 
@@ -260,7 +273,8 @@ func main() {
             Body: "function () {\r\n var context = getContext();\r\n var response = context.getResponse();\r\n\r\n  response.setBody(\"Hello, World\");\r\n}"
         }
 
-        createdSP, err := coll.StoredProcedures().Create(spDef)
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+        createdSP, err := coll.StoredProcedures().Create(ctx, spDef)
     }
 ```
 
@@ -273,7 +287,8 @@ func main() {
         client, err := cosmos.New("YOUR_CONNECTION_STRING")
         coll := client.Database("dbID").Collection("collID")
         var res string
-        _, err = coll.StoredProcedure("mySP").Execute("", &res)
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+        _, err = coll.StoredProcedure("mySP").Execute(ctx, "", &res)
     }
 ```
 
@@ -290,7 +305,8 @@ func main() {
             Body: "function (greet, someone) {\r\n var context = getContext();\r\n var response = context.getResponse();\r\n\r\n response.setBody(greet + \", \"+ someone);\r\n}"
         }
 
-        _, err = coll.StoredProcedure("mySP").Replace(newSpDef)
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+        _, err = coll.StoredProcedure("mySP").Replace(ctx, newSpDef)
     }
 ```
 
@@ -302,7 +318,8 @@ func main() {
     func main() {
         client, err := cosmos.New("YOUR_CONNECTION_STRING")
         coll := client.Database("dbID").Collection("collID")
-        sprocs, err := coll.StoredProcedures().ReadAll()
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+        sprocs, err := coll.StoredProcedures().ReadAll(ctx)
     }
 ```
 
@@ -313,7 +330,8 @@ func main() {
 
     func main() {
         client, err := cosmos.New("YOUR_CONNECTION_STRING")
-        _, err = coll.StoredProcedure("mySP").Delete()
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+        _, err = coll.StoredProcedure("mySP").Delete(ctx)
     }
 ```
 
@@ -331,7 +349,8 @@ func main() {
 		    Body: "function tax(income) {\r\n if(income == undefined) \r\n throw 'no input';\r\n if (income < 1000) \r\n return income * 0.1;\r\n else if (income < 10000) \r\n return income * 0.2;\r\n else\r\n return income * 0.4;\r\n}",
             Resource: cosmos.Resource{ID: "myUDF"},
         }
-        createdUDF, err := coll.UDFs().Create(udfDef)
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+        createdUDF, err := coll.UDFs().Create(ctx, udfDef)
     }
 ```
 
@@ -347,7 +366,8 @@ func main() {
 		    Body: "function tax(income) {\r\n if(income == undefined) \r\n throw 'no input';\r\n if (income     < 2000) \r\n return income * 0.1;\r\n else if (income < 10000) \r\n return income * 0.2;\r\n    else\r\n return income * 0.4;\r\n}",
             Resource: cosmos.Resource{ID: "myUDF"},
         }
-        updatedUDF, err := coll.UDF("myUDF").Replace(newUDF)
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+        updatedUDF, err := coll.UDF("myUDF").Replace(ctx, newUDF)
     }
 ```
 
@@ -359,7 +379,8 @@ func main() {
     func main() {
         client, err := cosmos.New("YOUR_CONNECTION_STRING")
         coll := client.Database("dbID").Collection("collID")
-        udfs, err := coll.UDFs().ReadAll()
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+        udfs, err := coll.UDFs().ReadAll(ctx)
     }
 ```
 
@@ -370,7 +391,8 @@ func main() {
 
     func main() {
         client, err := cosmos.New("YOUR_CONNECTION_STRING")
-        _, err = coll.UDF("myUDF").Delete()
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+        _, err = coll.UDF("myUDF").Delete(ctx)
     }
 ```
 
@@ -390,7 +412,8 @@ func main() {
 		    TriggerOperation: "All",
             TriggerType:      "Post",
         }
-        _, err := coll.Triggers().Create(triggerDef)
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+        _, err := coll.Triggers().Create(ctx, triggerDef)
     }
 ```
 
@@ -408,7 +431,8 @@ func main() {
 		    TriggerOperation: "All",
             TriggerType:      "Post",
         }
-        updatedTriggerDef, err := coll.Trigger("myTrigger").Replace(newTriggerDef)
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+        updatedTriggerDef, err := coll.Trigger("myTrigger").Replace(ctx, newTriggerDef)
     }
 ```
 
@@ -420,7 +444,8 @@ func main() {
     func main() {
         client, err := cosmos.New("YOUR_CONNECTION_STRING")
         coll := client.Database("dbID").Collection("collID")
-        triggers, err := coll.Triggers().ReadAll()
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+        triggers, err := coll.Triggers().ReadAll(ctx)
     }
 ```
 
@@ -431,7 +456,8 @@ func main() {
 
     func main() {
         client, err := cosmos.New("YOUR_CONNECTION_STRING")
-        _, err = coll.Trigger("myTrigger").Delete()
+        ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+        _, err = coll.Trigger("myTrigger").Delete(ctx)
     }
 ```
 
@@ -458,9 +484,10 @@ func main()  {
 
     qb := qbuilder.New()
     query := qb.Select("*").From("root").And("root.age > 10").Build()
+    ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 
     var people []People
-    client.Database("mydb").Collection("people").Documents().Query(query, people, Cosmos.CrossPartition())
+    client.Database("mydb").Collection("people").Documents().Query(ctx, query, people, Cosmos.CrossPartition())
 }
 ```
 
@@ -479,7 +506,8 @@ import "github.com/SpacyCoder/cosmosdb-go-sdk/qbuilder"
     q1 := qb.Select("*").From("root").And("root.age > @AGE").And("root.height > @HEIGHT").OrderBy("DESC root.height")
     query := q1.Params(cosmos.P{Name: "@AGE", Value: 20}, cosmos.P{Name: "@HEIGHT", Value: 180}).Build()
 
+    ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
     var people []People
-    client.Database("mydb").Collection("people").Documents().Query(query, people, Cosmos.CrossPartition())
+    client.Database("mydb").Collection("people").Documents().Query(ctx, query, people, Cosmos.CrossPartition())
 }
 ```
