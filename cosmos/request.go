@@ -34,7 +34,7 @@ const (
 	HeaderAIM                 = "A-IM"
 	HeaderPartitionKeyRangeID = "x-ms-documentdb-partitionkeyrangeid"
 	HeaderRetryAfterMs        = "x-ms-retry-after-ms"
-	SupportedVersion          = "2017-02-22"
+	SupportedVersion          = "2018-12-31"
 )
 
 type Request struct {
