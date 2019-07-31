@@ -26,23 +26,3 @@ func TestQuery(t *testing.T) {
 		}
 	}
 }
-
-func TestLineString(t *testing.T) {
-	ls := NewLineString()
-	ls.AddPoint(5.0, 10)
-	ls.AddPoint(10, 11)
-	ls.AddPoint(5, 10)
-
-	if len(ls.Coordinates) != 3 {
-		t.Fatalf("LineString should contain %d points but has: %d", 3, len(ls.Coordinates))
-	}
-
-	ls = NewLineString(Coordinate{5.0, 10}, Coordinate{10, 11}, Coordinate{5, 10})
-
-	if len(ls.Coordinates) != 3 {
-		t.Fatalf("LineString should contain %d points but has: %d", 3, len(ls.Coordinates))
-	}
-
-	ls = NewLineString(Coordinate{5.0, 10}, Coordinate{10, 11})
-	ls.AddPoint(5, 10)
-}

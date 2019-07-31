@@ -5,30 +5,31 @@ import "testing"
 func TestPermission(t *testing.T) {
 	client := getDummyClient()
 	db := client.Database("dbtest")
-	sp := db.User("myUser")
+	user := db.User("myUser")
+	perm := user.Permission("myPerm")
 
-	if sp.client.rType != "users" {
-		t.Errorf("%+v", sp.client)
+	if perm.client.rType != "permissions" {
+		t.Errorf("%+v", perm.client)
 	}
 
-	if sp.client.rLink != "dbs/dbtest/users/myUser" {
-		t.Errorf("%+v", sp.client)
+	if perm.client.rLink != "dbs/dbtest/users/myUser/permissions/myPerm" {
+		t.Errorf("%+v", perm.client)
 	}
 
-	if sp.client.path != "dbs/dbtest/users/myUser" {
-		t.Errorf("%+v", sp.client)
+	if perm.client.path != "dbs/dbtest/users/myUser/permissions/myPerm" {
+		t.Errorf("%+v", perm.client)
 	}
 
-	usrs := db.Users()
-	if usrs.client.rType != "users" {
-		t.Errorf("Wrong rType %s", usrs.client.rType)
+	perms := user.Permissions()
+	if perms.client.rType != "permissions" {
+		t.Errorf("Wrong rType %s", perms.client.rType)
 	}
 
-	if usrs.client.rLink != "dbs/dbtest" {
-		t.Errorf("Wrong rLink %s", usrs.client.rLink)
+	if perms.client.rLink != "dbs/dbtest/users/myUser" {
+		t.Errorf("Wrong rLink %s", perms.client.rLink)
 	}
 
-	if usrs.client.path != "dbs/dbtest/users" {
-		t.Errorf("Wrong path %s", usrs.client.path)
+	if perms.client.path != "dbs/dbtest/users/myUser/permissions" {
+		t.Errorf("Wrong path, expexted: %s, got: %s", "dbs/dbtest/users/myUser/permissions", perms.client.path)
 	}
 }

@@ -40,14 +40,6 @@ type DatabaseDefinition struct {
 // DatabaseDefinitions slice of Database elements
 type DatabaseDefinitions []DatabaseDefinition
 
-// First returns first database
-func (d DatabaseDefinitions) First() *DatabaseDefinition {
-	if len(d) == 0 {
-		return nil
-	}
-	return &d[0]
-}
-
 // Length returns the number of databases.
 func (d *DatabaseDefinitions) Length() int {
 	return len(*d)
@@ -73,14 +65,6 @@ type PartitionKeyDefinition struct {
 
 // CollectionDefinitions is a slice of CollectionDefinition elements
 type CollectionDefinitions []CollectionDefinition
-
-// First returns first database in slice
-func (c CollectionDefinitions) First() *CollectionDefinition {
-	if len(c) == 0 {
-		return nil
-	}
-	return &c[0]
-}
 
 // Length returns the number of collections.
 func (c *CollectionDefinitions) Length() int {

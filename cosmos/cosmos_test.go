@@ -7,9 +7,9 @@ func getDummyClient() *Client {
 	return client
 }
 
-func testEmptyConnString(t *testing.T) {
+func TestEmptyConnString(t *testing.T) {
 	_, err := New("")
-	if err != nil {
+	if err == nil {
 		t.Fatal("error should not be nil")
 	}
 }
