@@ -27,7 +27,7 @@ func (c *Client) getURL() string {
 }
 
 // New create a new CosmosDB instance
-func New(connString string) (*Client, error) {
+func New(connString string, opts ...Option) (*Client, error) {
 	if connString == "" {
 		return nil, errors.New("Invalid connection string")
 	}
@@ -41,6 +41,13 @@ func New(connString string) (*Client, error) {
 		return nil, errors.New("Invalid connection string")
 	}
 	httpClient := &http.Client{}
+
+	c := &Client{key, path, path, "", httpClient, "", ""}
+
+	for _, o := range opts {
+		o(c)
+	}
+
 	return &Client{key, path, path, "", httpClient, "", ""}, nil
 }
 
@@ -184,4 +191,14 @@ func stringify(body interface{}) (bt []byte, err error) {
 		bt, err = Serialization.Marshal(t)
 	}
 	return
+}
+
+// Option funcitons for configuring the client
+type Option func(*Client)
+
+// WithClient allows you to provide a custom http client
+func WithClient(client *http.Client) Option {
+	return func(c *Client) {
+		c.httpClient = client
+	}
 }
