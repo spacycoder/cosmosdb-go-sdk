@@ -48,7 +48,7 @@ func New(connString string, opts ...Option) (*Client, error) {
 		o(c)
 	}
 
-	return &Client{key, path, path, "", httpClient, "", ""}, nil
+	return c, nil
 }
 
 // Offer defines all operation on a single offer
