@@ -22,12 +22,20 @@ type Client struct {
 	rLink      string
 }
 
+type Option func(*Client)
+
+func WithClient(client *http.Client) Option {
+	return func(c *Client) {
+		c.httpClient = client
+	}
+}
+
 func (c *Client) getURL() string {
 	return c.domain + c.path
 }
 
 // New create a new CosmosDB instance
-func New(connString string) (*Client, error) {
+func New(connString string, opts ...Option) (*Client, error) {
 	if connString == "" {
 		return nil, errors.New("Invalid connection string")
 	}
@@ -41,7 +49,14 @@ func New(connString string) (*Client, error) {
 		return nil, errors.New("Invalid connection string")
 	}
 	httpClient := &http.Client{}
-	return &Client{key, path, path, "", httpClient, "", ""}, nil
+
+	c := &Client{key, path, path, "", httpClient, "", ""}
+
+	for _, o := range opts {
+		o(c)
+	}
+
+	return c, nil
 }
 
 // Offer defines all operation on a single offer
