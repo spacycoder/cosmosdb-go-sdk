@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/spacycoder/cosmosdb-go-sdk/cosmos"
+	"github.com/sethjback/cosmosdb-go-sdk/cosmos"
 )
 
 func TestQueryBuilder(t *testing.T) {

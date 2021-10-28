@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/spacycoder/cosmosdb-go-sdk/cosmos"
+	"github.com/sethjback/cosmosdb-go-sdk/cosmos"
 )
 
 func getClient() (*cosmos.Client, error) {

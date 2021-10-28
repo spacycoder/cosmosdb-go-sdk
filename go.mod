@@ -1,4 +1,4 @@
-module github.com/spacycoder/cosmosdb-go-sdk
+module github.com/sethjback/cosmosdb-go-sdk
 
 go 1.12
 
