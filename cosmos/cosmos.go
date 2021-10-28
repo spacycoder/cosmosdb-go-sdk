@@ -22,14 +22,6 @@ type Client struct {
 	rLink      string
 }
 
-type Option func(*Client)
-
-func WithClient(client *http.Client) Option {
-	return func(c *Client) {
-		c.httpClient = client
-	}
-}
-
 func (c *Client) getURL() string {
 	return c.domain + c.path
 }
@@ -199,4 +191,14 @@ func stringify(body interface{}) (bt []byte, err error) {
 		bt, err = Serialization.Marshal(t)
 	}
 	return
+}
+
+// Option funcitons for configuring the client
+type Option func(*Client)
+
+// WithClient allows you to provide a custom http client
+func WithClient(client *http.Client) Option {
+	return func(c *Client) {
+		c.httpClient = client
+	}
 }
